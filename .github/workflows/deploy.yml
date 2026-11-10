@@ -1,0 +1,80 @@
+name: Deploy games to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        game: [pufferfish, tiles]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: ${{ matrix.game }}/go.mod
+          cache-dependency-path: ${{ matrix.game }}/go.sum
+
+      - name: Build WASM
+        working-directory: ${{ matrix.game }}
+        env:
+          GOOS: js
+          GOARCH: wasm
+        run: |
+          mkdir -p ../dist/${{ matrix.game }}
+          go build -o ../dist/${{ matrix.game }}/game.wasm .
+          cp web/* ../dist/${{ matrix.game }}/
+          cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" ../dist/${{ matrix.game }}/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: game-${{ matrix.game }}
+          path: dist/${{ matrix.game }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: game-*
+          path: site
+
+      - name: Arrange site
+        run: |
+          cd site
+          for d in game-*; do mv "$d" "${d#game-}"; done
+          cat > index.html <<'EOF'
+          <!DOCTYPE html>
+          <meta charset="utf-8">
+          <title>Games</title>
+          <ul>
+            <li><a href="pufferfish/">Pufferfish</a></li>
+            <li><a href="tiles/">Tiles</a></li>
+          </ul>
+          EOF
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
