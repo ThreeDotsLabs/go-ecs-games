@@ -99,6 +99,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	g := NewGame()
+	attachInspector(g) // Optional debug overlay, see inspect.go.
 
 	ebiten.SetWindowSize(ScreenWidth, ScreenHeight)
 

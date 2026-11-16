@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html, body { margin: 0; background: #000; overflow: hidden; }</style>
 <script src="wasm_exec.js"></script>
 <script>
 // Polyfill
@@ -10,6 +12,9 @@ if (!WebAssembly.instantiateStreaming) {
 }
 
 const go = new Go();
+if (new URLSearchParams(location.search).get("inspect") === "1") {
+    go.argv = ["tiles", "--inspect"];
+}
 WebAssembly.instantiateStreaming(fetch("game.wasm"), go.importObject).then(result => {
     go.run(result.instance);
 });
