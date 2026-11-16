@@ -13,6 +13,12 @@ Play in the browser: https://threedotslabs.github.io/go-ecs-games/
   Move with `WASD`, press `/` to toggle debug.
 - **tiles**: click or tap tiles to knock them down.
 
+## Patterns
+
+[patterns/](patterns/README.md) is a catalog of ECS patterns for Ebitengine and Donburi games.
+It's extracted from games I made before, so don't treat it as the definitive answer.
+I made it for AI agents, to keep what they build in line with what's already familiar to me.
+
 ## Running
 
 ```sh
